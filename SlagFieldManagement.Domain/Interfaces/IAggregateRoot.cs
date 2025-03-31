@@ -2,7 +2,7 @@
 
 public interface IAggregateRoot
 {
-    int Id { get; }
+    Guid Id { get; }
     void LoadFromHistory(IEnumerable<IDomainEvent> events);
     IEnumerable<IDomainEvent> GetUncommittedEvents();
     void ClearUncommittedEvents();

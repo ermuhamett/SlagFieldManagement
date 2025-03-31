@@ -2,8 +2,8 @@
 
 public interface IDomainEvent
 {
-    int EventId { get; }
-    int AggregateId { get; }
+    Guid EventId { get; }
+    Guid AggregateId { get; }
     string EventType { get; }
     string EventData { get; }
     int Version { get; }
