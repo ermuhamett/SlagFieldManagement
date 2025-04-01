@@ -7,6 +7,7 @@ public abstract class AggregateRoot : Entity
     private readonly List<IDomainEvent> _uncommittedEvents = new();
     public IEnumerable<IDomainEvent> UncommittedEvents => _uncommittedEvents.AsReadOnly();
 
+    protected AggregateRoot(Guid id) : base(id) {}
     protected void AddDomainEvent(IDomainEvent @event) 
         => _uncommittedEvents.Add(@event);
 
