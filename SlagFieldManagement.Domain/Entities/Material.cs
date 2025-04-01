@@ -1,21 +1,24 @@
-﻿namespace SlagFieldManagement.Domain.Entities;
+﻿using SlagFieldManagement.Domain.Abstractions;
+using SlagFieldManagement.Domain.ValueObjects;
 
-public sealed class Material
+namespace SlagFieldManagement.Domain.Entities;
+
+public sealed class Material:Entity
 {
-    public Guid Id { get; private set; }
     public string Name { get; private set; }
     public bool IsDelete { get; private set; }
-
-    private Material(Guid id, string name)
+    public MaterialSettings Settings { get; private set; }
+    
+    private Material(Guid id, string name, MaterialSettings settings):base(id)
     {
         Id = id;
         Name = name;
+        Settings = settings;
         IsDelete = false;
     }
 
-    public static Material Create(string name)
+    public static Material Create(string name, MaterialSettings settings)
     {
-        var material = new Material(Guid.NewGuid(), name);
-        return material;
+        return new Material(Guid.NewGuid(), name, settings);
     }
 }
