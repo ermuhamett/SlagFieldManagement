@@ -2,9 +2,9 @@
 
 public enum StateFieldType
 {
-    Initial,
-    BucketPlaced,
-    BucketEmptied,
-    BucketRemoved,
-    Invalid
+    Initial=1,
+    BucketPlaced=2,
+    BucketEmptied=3,
+    BucketRemoved=4,
+    Invalid=5
 }

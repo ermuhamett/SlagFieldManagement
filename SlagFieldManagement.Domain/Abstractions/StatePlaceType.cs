@@ -2,6 +2,6 @@
 
 public enum StatePlaceType
 {
-    PlaceWentInUse,
-    PlaceWentOutOfUse
+    PlaceWentInUse=1,
+    PlaceWentOutOfUse=2
 }
