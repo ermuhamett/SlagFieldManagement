@@ -2,13 +2,13 @@
 
 namespace SlagFieldManagement.Domain.Abstractions;
 
-public abstract class AggregateRoot : Entity
+public abstract class AggregateBase : Entity
 {
     private readonly List<IDomainEvent> _events = new List<IDomainEvent>();
     
     public IReadOnlyList<IDomainEvent> Events => _events.AsReadOnly();
 
-    protected AggregateRoot(Guid id) : base(id) {}
+    protected AggregateBase(Guid id) : base(id) {}
     
     // Метод для добавления события
     protected void AddEvent(IDomainEvent @event)
