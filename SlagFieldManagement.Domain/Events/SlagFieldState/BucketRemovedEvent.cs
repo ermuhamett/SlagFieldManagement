@@ -1,6 +1,6 @@
 ﻿using SlagFieldManagement.Domain.Interfaces;
 
-namespace SlagFieldManagement.Domain.Events;
+namespace SlagFieldManagement.Domain.Events.SlagFieldState;
 
 public record BucketRemovedEvent(
     Guid EventId,

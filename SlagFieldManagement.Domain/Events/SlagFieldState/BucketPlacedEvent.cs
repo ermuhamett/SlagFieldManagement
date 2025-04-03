@@ -1,7 +1,8 @@
 ﻿using System.Text.Json;
+using SlagFieldManagement.Domain.Abstractions;
 using SlagFieldManagement.Domain.Interfaces;
 
-namespace SlagFieldManagement.Domain.Events;
+namespace SlagFieldManagement.Domain.Events.SlagFieldState;
 
 public record BucketPlacedEvent(
     Guid EventId,
