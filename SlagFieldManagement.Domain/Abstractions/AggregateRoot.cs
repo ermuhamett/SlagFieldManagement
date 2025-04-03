@@ -4,15 +4,21 @@ namespace SlagFieldManagement.Domain.Abstractions;
 
 public abstract class AggregateRoot : Entity
 {
-    private readonly List<IDomainEvent> _uncommittedEvents = new();
-    public IEnumerable<IDomainEvent> UncommittedEvents => _uncommittedEvents.AsReadOnly();
+    private readonly List<IDomainEvent> _events = new List<IDomainEvent>();
+    
+    public IReadOnlyList<IDomainEvent> Events => _events.AsReadOnly();
 
     protected AggregateRoot(Guid id) : base(id) {}
-    protected void AddDomainEvent(IDomainEvent @event) 
-        => _uncommittedEvents.Add(@event);
+    
+    // Метод для добавления события
+    protected void AddEvent(IDomainEvent @event)
+    {
+        _events.Add(@event);
+        ApplyEvent(@event); // Применяем событие сразу для обновления состояния
+    }
 
-    public void ClearUncommittedEvents() 
-        => _uncommittedEvents.Clear();
+    // Абстрактный метод для применения события
+    protected abstract void ApplyEvent(IDomainEvent @event);
 
-    public abstract void LoadFromHistory(IEnumerable<IDomainEvent> events);
+    //public abstract void LoadFromHistory(IEnumerable<IDomainEvent> events);
 }
