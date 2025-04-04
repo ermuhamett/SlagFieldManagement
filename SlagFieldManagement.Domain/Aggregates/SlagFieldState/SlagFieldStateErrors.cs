@@ -2,7 +2,7 @@
 
 namespace SlagFieldManagement.Domain.Aggregates.SlagFieldState;
 
-public class SlagFieldStateErrors
+public static class SlagFieldStateErrors
 {
     public static Error PlaceOccupied(Guid placeId) => new(
         "SlagField.PlaceOccupied",
