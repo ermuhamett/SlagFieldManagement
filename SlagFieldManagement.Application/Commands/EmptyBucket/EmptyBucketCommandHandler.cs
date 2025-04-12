@@ -60,10 +60,10 @@ public sealed class EmptyBucketCommandHandler:ICommandHandler<EmptyBucketCommand
             await _unitOfWork.CommitTransactionAsync(ct);
             return Result.Success();
         }
-        catch (Exception e)
+        catch
         {
-            Console.WriteLine(e);
-            throw;
+            await _unitOfWork.RollbackTransactionAsync(ct);
+            throw; 
         }
     }
 }
