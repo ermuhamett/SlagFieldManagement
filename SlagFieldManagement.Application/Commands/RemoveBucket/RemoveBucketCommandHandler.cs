@@ -53,6 +53,7 @@ public sealed class RemoveBucketCommandHandler:ICommandHandler<RemoveBucketComma
             {
                 await _stateEventStore.SaveEventAsync(@event, currentState.Id, expectedVersion: 0);
             }
+            currentState.ClearEvents();
             await _unitOfWork.SaveChangesAsync(ct);
             await _unitOfWork.CommitTransactionAsync(ct);
             return Result.Success();

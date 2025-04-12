@@ -56,6 +56,7 @@ public sealed class EmptyBucketCommandHandler:ICommandHandler<EmptyBucketCommand
             {
                 await _stateEventStore.SaveEventAsync(@event, state.Id, expectedVersion: 0);
             }
+            state.ClearEvents();
             await _unitOfWork.SaveChangesAsync(ct);
             await _unitOfWork.CommitTransactionAsync(ct);
             return Result.Success();

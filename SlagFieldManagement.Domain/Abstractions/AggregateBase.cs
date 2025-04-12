@@ -19,6 +19,11 @@ public abstract class AggregateBase : Entity
 
     // Абстрактный метод для применения события
     protected abstract void ApplyEvent(IDomainEvent @event);
+    
+    public void ClearEvents()
+    {
+        _events.Clear();
+    }
 
     //public abstract void LoadFromHistory(IEnumerable<IDomainEvent> events);
 }

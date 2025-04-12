@@ -70,6 +70,7 @@ public sealed class PlaceBucketCommandHandler:ICommandHandler<PlaceBucketCommand
             {
                 await _stateEventStore.SaveEventAsync(@event, newState.Id, expectedVersion: 0);
             }
+            newState.ClearEvents();
             await _unitOfWork.SaveChangesAsync(ct);
             await _unitOfWork.CommitTransactionAsync(ct);
             return Result.Success();
