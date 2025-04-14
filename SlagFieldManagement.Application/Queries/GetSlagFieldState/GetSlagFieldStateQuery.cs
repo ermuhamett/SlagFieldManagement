@@ -1,4 +1,5 @@
 ﻿using SlagFieldManagement.Application.Abstractions.Messaging;
+using SlagFieldManagement.Application.DTO;
 
 namespace SlagFieldManagement.Application.Queries.GetSlagFieldState;
 

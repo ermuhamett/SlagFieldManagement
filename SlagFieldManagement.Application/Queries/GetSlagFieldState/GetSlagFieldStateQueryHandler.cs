@@ -1,4 +1,5 @@
 ﻿using SlagFieldManagement.Application.Abstractions.Messaging;
+using SlagFieldManagement.Application.DTO;
 using SlagFieldManagement.Domain.Abstractions;
 using SlagFieldManagement.Domain.Interfaces;
 
