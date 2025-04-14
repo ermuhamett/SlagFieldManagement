@@ -1,6 +1,5 @@
 ﻿using SlagFieldManagement.Domain.Abstractions;
 using SlagFieldManagement.Domain.Events.SlagFieldPlace;
-using SlagFieldManagement.Domain.Exceptions;
 using SlagFieldManagement.Domain.Interfaces;
 
 namespace SlagFieldManagement.Domain.Aggregates.SlagFieldPlace;
@@ -23,46 +22,47 @@ public sealed class SlagFieldPlace:AggregateBase
     }
     
     // Фабричный метод
-    public static SlagFieldPlace Create(string row, int number)
+    public static Result<SlagFieldPlace> Create(string row, int number)
     {
         if (string.IsNullOrWhiteSpace(row) || !row.All(char.IsLetterOrDigit))
-            throw new DomainException(SlagFieldPlaceErrors.InvalidRowFormat);
+            return Result.Failure<SlagFieldPlace>(SlagFieldPlaceErrors.InvalidRowFormat);
 
         if (number <= 0)
-            throw new DomainException(SlagFieldPlaceErrors.InvalidNumber);
+            return Result.Failure<SlagFieldPlace>(SlagFieldPlaceErrors.InvalidNumber);
 
-        return new SlagFieldPlace(Guid.NewGuid(), row, number);
+        return Result.Success(new SlagFieldPlace(Guid.NewGuid(), row, number));
     }
     
     // Активация места
-    public void Enable()
+    public Result Enable()
     {
         if (IsEnable)
-            throw new DomainException(SlagFieldPlaceErrors.AlreadyEnabled(Id));
+            return Result.Failure(SlagFieldPlaceErrors.AlreadyEnabled(Id));
         
-        var @event = new WentInUseEvent(Guid.NewGuid(), 
-            Id, 
-            StatePlaceType.PlaceWentInUse.ToString(),
-            DateTime.UtcNow);
+        var @event = new WentInUseEvent(
+            EventId:Guid.NewGuid(), 
+            AggregateId:Id, 
+            EventType:"WentInUse",
+            Timestamp:DateTime.UtcNow);
+        
         AddEvent(@event);
+        return Result.Success();
     }
     
     // Деактивация места
-    public void Disable()
+    public Result Disable()
     {
         if (!IsEnable)
-            throw new DomainException(SlagFieldPlaceErrors.AlreadyDisabled(Id));
-
-        // Если есть активные операции
-        /*if (HasActiveOperations())
-            throw new DomainException(SlagFieldPlaceErrors.HasActiveOperations(Id));*/
-
-        var @event = new WentOutOfUseEvent(Guid.NewGuid(),
-            Id,
-            StatePlaceType.PlaceWentOutOfUse.ToString(),
-            DateTime.UtcNow);
+            return Result.Failure(SlagFieldPlaceErrors.AlreadyDisabled(Id));
+        
+        var @event = new WentOutOfUseEvent(
+            EventId:Guid.NewGuid(),
+            AggregateId:Id,
+            EventType:"OutOfUse",
+            Timestamp:DateTime.UtcNow);
         
         AddEvent(@event);
+        return Result.Success();
     }
     
 

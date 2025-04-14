@@ -16,19 +16,20 @@ public class SlagFieldState:AggregateBase
     public DateTime? EndDate { get; private set; }
     public string? Description { get; private set; }
     public StateFieldType State { get; private set; }
+    
     public bool IsDelete { get; private set; }
     
-    private SlagFieldState(Guid id, Guid placeId, DateTime startDate) : base(id)
+    // Конструктор для создания нового агрегата
+    private SlagFieldState(Guid id, Guid placeId) : base(id)
     {
         PlaceId = placeId;
-        StartDate = startDate;
-        State = StateFieldType.Initial;
+        State = StateFieldType.Initial; // Начальное состояние
     }
     
     // Фабричный метод для создания нового состояния для места
-    public static SlagFieldState Create(Guid id, Guid placeId,DateTime startDate)
+    public static SlagFieldState CreateState(Guid placeId)
     {
-        return new SlagFieldState(id, placeId, startDate);
+        return new SlagFieldState(Guid.NewGuid(), placeId);
     }
     
     // Метод для установки ковша на место, возможно только если состояние Initial или BucketRemoved
@@ -38,40 +39,53 @@ public class SlagFieldState:AggregateBase
             throw new DomainException(SlagFieldStateErrors.PlaceOccupied(Id)); // Валидация состояния
 
         var @event = new BucketPlacedEvent(
-            Guid.NewGuid(), 
-            Id, 
-            StateFieldType.BucketPlaced.ToString(), 
-            DateTime.UtcNow, 
-            bucketId,
-            materialId, 
-            slagWeight);
+            EventId:Guid.NewGuid(), 
+            AggregateId:Id, 
+            EventType:"PlaceBucket", 
+            Timestamp:DateTime.UtcNow, 
+            BucketId:bucketId,
+            MaterialId:materialId, 
+            SlagWeight:slagWeight,
+            ClientStartDate:startDate
+        );
+        
         AddEvent(@event); // Добавляем событие для сохранения
     }
 
     //Опустошить ковш
-    public void EmptyBucket()
+    public void EmptyBucket(DateTime emptyDate)
     {
-        if (State != StateFieldType.BucketPlaced)
-            throw new DomainException(SlagFieldStateErrors.EmptyingNotAllowed);
         var @event = new BucketEmptiedEvent(
-            Guid.NewGuid(), 
-            Id, 
-            StateFieldType.BucketEmptied.ToString(), 
-            DateTime.UtcNow);
+            EventId:Guid.NewGuid(), 
+            AggregateId:Id, 
+            EventType:"EmptyBucket", 
+            Timestamp:DateTime.UtcNow,
+            BucketEmptiedTime:emptyDate);
+        
         AddEvent(@event);
     }
     
     // Метод для снятия ковша, возможно только если состояние BucketPlaced
-    public void RemoveBucket(DateTime endDate)
+    public void RemoveBucket()
     {
-        if (State != StateFieldType.BucketEmptied)
-            throw new DomainException(SlagFieldStateErrors.RemovalNotAllowed);
-
         var @event = new BucketRemovedEvent(
-            Guid.NewGuid(), 
-            Id, 
-            StateFieldType.BucketRemoved.ToString(), 
-            DateTime.UtcNow);
+            EventId:Guid.NewGuid(), 
+            AggregateId:Id, 
+            EventType:"RemoveBucket", 
+            Timestamp:DateTime.UtcNow);
+        
+        AddEvent(@event);
+    }
+
+    public void SetInvalid(string description)
+    {
+        var @event = new InvalidEvent(
+            EventId: Guid.NewGuid(),
+            AggregateId: Id,
+            EventType: "Invalid",
+            Timestamp: DateTime.UtcNow,
+            Description: description);
+        
         AddEvent(@event);
     }
     
@@ -83,18 +97,18 @@ public class SlagFieldState:AggregateBase
                 BucketId = placed.BucketId;
                 MaterialId = placed.MaterialId;
                 SlagWeight = placed.SlagWeight;
+                StartDate = placed.ClientStartDate;
                 State = StateFieldType.BucketPlaced;
                 break;
             case BucketEmptiedEvent emptied:
                 State = StateFieldType.BucketEmptied;
-                EndDate = emptied.Timestamp;
+                EndDate = emptied.BucketEmptiedTime;
                 break;
-            case BucketRemovedEvent removed:
+            case BucketRemovedEvent:
                 BucketId = null;
                 MaterialId = null;
                 SlagWeight = 0;
                 State = StateFieldType.BucketRemoved;
-                EndDate = removed.Timestamp;
                 break;
             case InvalidEvent invalid:
                 State = StateFieldType.Invalid;

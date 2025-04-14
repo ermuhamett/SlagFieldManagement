@@ -12,6 +12,14 @@ public static class SlagFieldPlaceErrors
         "SlagFieldPlace.AlreadyDisabled",
         $"Место {placeId} уже отключено");
 
+    public static Error PlaceNotFoundOrDisabled(Guid placeId) => new(
+        "SlagFieldPlace.PlaceNotFoundOrDisabled",
+        $"Место {placeId} не найдено или отключено");
+    
+    public static Error PlaceNotFound(Guid placeId) => new(
+        "SlagFieldPlace.PlaceNotFound",
+        $"Место {placeId} не найдено");
+
     public static Error InvalidRowFormat = new(
         "SlagFieldPlace.InvalidRow",
         "Название ряда должно содержать только буквы и цифры");
