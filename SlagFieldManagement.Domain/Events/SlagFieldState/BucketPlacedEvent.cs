@@ -11,10 +11,11 @@ public record BucketPlacedEvent(
     DateTime Timestamp,
     Guid BucketId,
     Guid MaterialId,
-    decimal SlagWeight
+    decimal SlagWeight,
+    DateTime ClientStartDate
 ) : IDomainEvent
 {
-    public string EventData => JsonSerializer.Serialize(new { BucketId, MaterialId, SlagWeight });
+    public string EventData => JsonSerializer.Serialize(new { BucketId, MaterialId, SlagWeight, ClientStartDate });
     public int Version { get; init; } = 1;
     public string Metadata { get; init; } = string.Empty;
 }
