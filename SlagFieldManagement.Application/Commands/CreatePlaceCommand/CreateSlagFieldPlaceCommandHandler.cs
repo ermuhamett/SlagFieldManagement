@@ -4,26 +4,43 @@ using SlagFieldManagement.Domain.Aggregates.SlagFieldPlace;
 
 namespace SlagFieldManagement.Application.Commands.CreatePlaceCommand;
 
-public sealed class CreateSlagFieldPlaceCommandHandler:ICommandHandler<CreateSlagFieldPlaceCommand, Guid>
+public sealed class CreateSlagFieldPlaceCommandHandler:ICommandHandler<CreateSlagFieldPlaceCommand, SlagFieldPlace>
 {
-    private readonly IRepository<SlagFieldPlace> _repository;
+    private readonly ISlagFieldPlaceRepository _placeRepository;
     private readonly IUnitOfWork _unitOfWork;
-    
+
     public CreateSlagFieldPlaceCommandHandler(
-        IRepository<SlagFieldPlace> repository,
+        ISlagFieldPlaceRepository placeRepository,
         IUnitOfWork unitOfWork)
     {
-        _repository = repository;
+        _placeRepository = placeRepository;
         _unitOfWork = unitOfWork;
     }
     
-    public async Task<Result<Guid>> Handle(
+    public async Task<Result<SlagFieldPlace>> Handle(
         CreateSlagFieldPlaceCommand request, 
-        CancellationToken cancellationToken)
+        CancellationToken ct)
     {
-        var place = SlagFieldPlace.Create(request.Row, request.Number);
-        await _repository.AddAsync(place);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
-        return Result<Guid>.Success(place.Id);
+        // Создаём место с помощью фабричного метода
+        var placeResult = SlagFieldPlace.Create(request.Row, request.Number);
+        if (placeResult.IsFailure)
+            return Result.Failure<SlagFieldPlace>(placeResult.Error);
+
+        var place = placeResult.Value;
+        
+        // Сохраняем в репозитории с использованием транзакции
+        await _unitOfWork.BeginTransactionAsync(ct);
+        try
+        {
+            await _placeRepository.AddAsync(place, ct);
+            await _unitOfWork.SaveChangesAsync(ct);
+            await _unitOfWork.CommitTransactionAsync(ct);
+            return Result.Success(place);
+        }
+        catch
+        {
+            await _unitOfWork.RollbackTransactionAsync(ct);
+            throw;
+        }
     }
 }
