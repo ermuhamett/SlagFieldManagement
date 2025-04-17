@@ -17,7 +17,7 @@ public sealed class SlagFieldPlace:AggregateBase
     {
         Row = row;
         Number = number;
-        IsEnable = false;
+        IsEnable = true;
         IsDelete = false;
     }
     
