@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using SlagFieldManagement.Domain.Abstractions;
 using SlagFieldManagement.Domain.Aggregates.SlagFieldPlace;
 using SlagFieldManagement.Domain.Aggregates.SlagFieldState;
 using SlagFieldManagement.Domain.Entities;
@@ -23,6 +24,10 @@ public class SlagFieldStateConfiguration:IEntityTypeConfiguration<SlagFieldState
             .HasPrecision(18, 3); // SlagWeight с точностью 18,3
         builder.Property(s => s.State)
             .IsRequired()
+            .HasConversion(
+                v => v.ToString(),          // Конвертация в строку при сохранении в БД
+                v => (StateFieldType)Enum.Parse(typeof(StateFieldType), v) // Обратная конвертация
+            )
             .HasMaxLength(15); // State обязателен, максимальная длина 15 символов
         builder.Property(s => s.Description)
             .HasMaxLength(250); // Description необязателен, максимальная длина 250 символов
