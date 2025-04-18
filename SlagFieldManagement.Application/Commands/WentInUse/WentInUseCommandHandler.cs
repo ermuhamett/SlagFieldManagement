@@ -44,7 +44,7 @@ public class WentInUseCommandHandler:ICommandHandler<WentInUseCommand>
         await _unitOfWork.BeginTransactionAsync(ct);
         try
         {
-            await _placeRepository.UpdateAsync(place, ct);
+            _placeRepository.Update(place);
             foreach (var @event in place.Events)
             {
                 await _placeEventStore.SaveEventAsync(@event, place.Id, expectedVersion: 0);

@@ -22,5 +22,5 @@ public interface ISlagFieldStockRepository
     /// <summary>
     /// Обновляет существующую запись SlagFieldStock в хранилище.
     /// </summary>
-    Task UpdateAsync(SlagFieldStock stock, CancellationToken cancellationToken = default);
+    void Update(SlagFieldStock stock, CancellationToken cancellationToken = default);
 }

@@ -55,10 +55,10 @@ public sealed class InvalidCommandHandler:ICommandHandler<InvalidCommand>
         await _unitOfWork.BeginTransactionAsync(ct);
         try
         {
-            await _stateRepository.UpdateAsync(currentState, ct);
+            _stateRepository.Update(currentState);
             if (stockUpdated)
             {
-                await _stockRepository.UpdateAsync(stock, ct);
+                _stockRepository.Update(stock, ct);
             }
             foreach (var @event in currentState.Events)
             {

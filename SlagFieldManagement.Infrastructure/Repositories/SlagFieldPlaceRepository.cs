@@ -23,5 +23,5 @@ internal sealed class SlagFieldPlaceRepository:Repository<SlagFieldPlace>, ISlag
     
     // Методы AddAsync и UpdateAsync можно не переопределять
     public async Task AddAsync(SlagFieldPlace place, CancellationToken ct) => await base.AddAsync(place, ct);
-    public async Task UpdateAsync(SlagFieldPlace place, CancellationToken ct) => base.Update(place);
+    public void Update(SlagFieldPlace place) => base.Update(place);
 }

@@ -33,7 +33,7 @@ public sealed class OutOfUseCommandHandler:ICommandHandler<OutOfUseCommand>
         OutOfUseCommand request, 
         CancellationToken ct)
     {
-        var place = await _placeRepository.GetByIdAsync(request.PlaceId);
+        var place = await _placeRepository.GetByIdAsync(request.PlaceId, ct);
         if (place is null || !place.IsEnable)
             return Result.Failure(SlagFieldPlaceErrors.AlreadyDisabled(request.PlaceId));
 
@@ -57,7 +57,7 @@ public sealed class OutOfUseCommandHandler:ICommandHandler<OutOfUseCommand>
             // Сохраняем обновление состояния, если оно было
             if (activeState != null)
             {
-                await _stateRepository.UpdateAsync(activeState, ct);
+                _stateRepository.Update(activeState);
                 foreach (var @event in activeState.Events)
                 {
                     await _stateEventStore.SaveEventAsync(@event, activeState.Id, expectedVersion: 0);
@@ -65,7 +65,7 @@ public sealed class OutOfUseCommandHandler:ICommandHandler<OutOfUseCommand>
                 activeState.ClearEvents();
             }
             // Сохраняем обновление места
-            await _placeRepository.UpdateAsync(place, ct);
+            _placeRepository.Update(place);
             foreach (var @event in place.Events)
             {
                 await _placeEventStore.SaveEventAsync(@event, place.Id, expectedVersion: 0);

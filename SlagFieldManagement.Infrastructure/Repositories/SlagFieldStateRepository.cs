@@ -18,6 +18,6 @@ internal sealed class SlagFieldStateRepository:Repository<SlagFieldState>, ISlag
     }
 
     // Используем базовые методы без переопределения
-    public async Task AddAsync(SlagFieldState state, CancellationToken ct) => await base.AddAsync(state, ct);
-    public async Task UpdateAsync(SlagFieldState state, CancellationToken ct) => base.Update(state);
+    //public async Task AddAsync(SlagFieldState state, CancellationToken ct) => await base.AddAsync(state, ct);
+    //public void Update(SlagFieldState state, CancellationToken ct) => base.Update(state);
 }

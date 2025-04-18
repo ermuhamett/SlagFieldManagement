@@ -19,12 +19,12 @@ public abstract class Repository<T> where T : Entity
         return await DbContext.Set<T>().FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
     }
 
-    public async Task AddAsync(T entity, CancellationToken cancellationToken = default)
+    public async Task AddAsync(T entity, CancellationToken cancellationToken)
     {
         await DbContext.AddAsync(entity, cancellationToken);
     }
 
-    protected void Update(T entity)
+    public void Update(T entity)
     {
         DbContext.Update(entity);
     }

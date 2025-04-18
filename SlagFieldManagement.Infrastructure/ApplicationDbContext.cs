@@ -9,7 +9,6 @@ public sealed class ApplicationDbContext:DbContext, IUnitOfWork
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        // Автоматическое применение всех конфигураций сущностей (IEntityTypeConfiguration) из текущей сборки.
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
         base.OnModelCreating(modelBuilder);
     }
