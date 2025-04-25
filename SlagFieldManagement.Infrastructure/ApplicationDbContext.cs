@@ -1,11 +1,15 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SlagFieldManagement.Domain.Abstractions;
+using SlagFieldManagement.Infrastructure.EventStores;
 
 namespace SlagFieldManagement.Infrastructure;
 
 public sealed class ApplicationDbContext:DbContext, IUnitOfWork
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
+    
+    public DbSet<SlagFieldPlaceEvent> SlagFieldPlaceEvents { get; set; }
+    public DbSet<SlagFieldStateEvent> SlagFieldStateEvents { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
