@@ -23,6 +23,9 @@ internal sealed class SlagFieldStateEventConfiguration:IEntityTypeConfiguration<
         builder.Property(e => e.Timestamp)
             .IsRequired(); // Timestamp обязателен
 
+        builder.HasIndex(e => e.AggregateId); // Для поиска по AggregateId
+        builder.HasIndex(e => e.Timestamp);   // Для фильтрации по времени
+        
         // Связь с SlagFieldState (многие к одному)
         builder.HasOne<SlagFieldState>()
             .WithMany() // В SlagFieldState нет явной коллекции событий

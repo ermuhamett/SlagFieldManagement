@@ -24,6 +24,9 @@ internal sealed class SlagFieldPlaceEventConfiguration:IEntityTypeConfiguration<
             .IsRequired(); // Timestamp обязателен
         builder.Property(e => e.Metadata); // Metadata необязателен (JSON-строка)
 
+        builder.HasIndex(e => e.AggregateId); // Для поиска по AggregateId
+        builder.HasIndex(e => e.Timestamp);   // Для фильтрации по времени
+        
         // Связь с SlagFieldPlace (многие к одному)
         builder.HasOne<SlagFieldPlace>()
             .WithMany() // В SlagFieldPlace нет явной коллекции событий
