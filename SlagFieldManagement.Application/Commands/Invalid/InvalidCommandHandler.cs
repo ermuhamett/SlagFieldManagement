@@ -58,7 +58,7 @@ public sealed class InvalidCommandHandler:ICommandHandler<InvalidCommand>
             _stateRepository.Update(currentState);
             if (stockUpdated)
             {
-                _stockRepository.Update(stock, ct);
+                _stockRepository.Update(stock);
             }
             foreach (var @event in currentState.Events)
             {
