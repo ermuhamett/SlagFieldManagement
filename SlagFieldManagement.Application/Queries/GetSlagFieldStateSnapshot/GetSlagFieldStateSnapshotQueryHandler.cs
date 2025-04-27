@@ -25,12 +25,15 @@ public class GetSlagFieldStateSnapshotQueryHandler:IQueryHandler<GetSlagFieldSna
     }
     public async Task<Result<List<SlagFieldStateResponse>>> Handle(GetSlagFieldSnapshotQuery request, CancellationToken cancellationToken)
     {
+        // 1. Получаем все места
         var places = await _placeRepository.GetAllAsync(cancellationToken);
         var placeIds = places.Select(p => p.Id).ToList();
         
+        // 2. Загружаем события для всех мест одним запросом
         var allPlaceEvents = await _placeEventStore.GetEventsBeforeForPlacesAsync(placeIds, request.SnapshotTime, cancellationToken);
         var allStateEvents = await _stateEventStore.GetEventsBeforeForPlacesAsync(placeIds, request.SnapshotTime, cancellationToken);
         
+        // 3. Группируем события по placeId для быстрого доступа
         var placeEventsGrouped = allPlaceEvents
             .GroupBy(e => e.AggregateId)
             .ToDictionary(g => g.Key, g => g.OrderBy(e => e.Timestamp).ToList());
@@ -39,6 +42,7 @@ public class GetSlagFieldStateSnapshotQueryHandler:IQueryHandler<GetSlagFieldSna
             .GroupBy(e => e.AggregateId)
             .ToDictionary(g => g.Key, g => g.OrderBy(e => e.Timestamp).ToList());
         
+        // 4. Формируем ответ для каждого места
         var responses = places.Select(place =>
         {
             var placeEventsForPlace = placeEventsGrouped.TryGetValue(place.Id, out var pe) ? pe : new List<IDomainEvent>();
