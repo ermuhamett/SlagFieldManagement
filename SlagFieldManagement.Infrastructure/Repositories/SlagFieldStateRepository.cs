@@ -16,8 +16,4 @@ internal sealed class SlagFieldStateRepository:Repository<SlagFieldState>, ISlag
             .OrderByDescending(s => s.StartDate) // Берем последнее активное состояние
             .FirstOrDefaultAsync(cancellationToken);
     }
-
-    // Используем базовые методы без переопределения
-    //public async Task AddAsync(SlagFieldState state, CancellationToken ct) => await base.AddAsync(state, ct);
-    //public void Update(SlagFieldState state, CancellationToken ct) => base.Update(state);
 }

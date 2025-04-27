@@ -14,8 +14,4 @@ internal sealed class SlagFieldStockRepository:Repository<SlagFieldStock>, ISlag
             .Where(s => s.SlagFieldStateId == stateId)
             .FirstOrDefaultAsync(ct);
     }
-
-    //public async Task AddAsync(SlagFieldStock state, CancellationToken ct) => await base.AddAsync(state, ct);
-
-    //public void Update(SlagFieldStock stock, CancellationToken ct = default) => base.Update(stock);
 }
