@@ -1,0 +1,6 @@
+@SlagFieldManagement.Api_HostAddress = http://localhost:5189
+
+GET {{SlagFieldManagement.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
