@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.13.35931.197 d17.13
+VisualStudioVersion = 17.13.35931.197
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SlagFieldManagement.Domain", "SlagFieldManagement.Domain\SlagFieldManagement.Domain.csproj", "{32F3CAEE-8175-4C62-88E9-4A709B7331AE}"
 EndProject
@@ -10,6 +10,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SlagFieldManagement.Infrastructure", "SlagFieldManagement.Infrastructure\SlagFieldManagement.Infrastructure.csproj", "{0F62F44F-97D3-4266-AEA1-B8BA8414FFA7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SlagFieldManagement.Api", "SlagFieldManagement.Api\SlagFieldManagement.Api.csproj", "{3A84EAD1-877D-438F-A82A-1A7E13CD1B44}"
+EndProject
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{81DDED9D-158B-E303-5F62-77A2896D2A5A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{3A84EAD1-877D-438F-A82A-1A7E13CD1B44}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3A84EAD1-877D-438F-A82A-1A7E13CD1B44}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3A84EAD1-877D-438F-A82A-1A7E13CD1B44}.Release|Any CPU.Build.0 = Release|Any CPU
+		{81DDED9D-158B-E303-5F62-77A2896D2A5A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{81DDED9D-158B-E303-5F62-77A2896D2A5A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{81DDED9D-158B-E303-5F62-77A2896D2A5A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{81DDED9D-158B-E303-5F62-77A2896D2A5A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
