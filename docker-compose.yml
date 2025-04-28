@@ -1,0 +1,21 @@
+services:
+  slagfieldmanagement.api:
+    image: ${DOCKER_REGISTRY-}slagfieldmanagementapi
+    container_name: SlagField.Api
+    build:
+      context: .
+      dockerfile: SlagFieldManagement.Api/Dockerfile
+    depends_on:
+      - postgres-db  # Зависимость от БД
+
+  postgres-db:
+    image: postgres:latest
+    container_name: SlagField.Postgres
+    environment:
+      - POSTGRES_DB=SlagFieldDB
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - ./.containers/database:/var/lib/postgresql/data  # Сохранение данных БД
+    ports:
+      - "5433:5432"  # Проброс портов для доступа извне
