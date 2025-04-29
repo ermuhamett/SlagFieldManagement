@@ -24,7 +24,7 @@ public static class DependencyInjection
         IConfiguration configuration)
     {
         var connectionString =
-            configuration.GetConnectionString("Database") ??
+            configuration.GetConnectionString("LocalDatabase") ??
             throw new ArgumentNullException(nameof(configuration));
 
         services.AddDbContext<ApplicationDbContext>(options =>
@@ -36,10 +36,13 @@ public static class DependencyInjection
         
         services.AddScoped<IBucketRepository, BucketRepository>();
         services.AddScoped<IMaterialRepository, MaterialRepository>();
+        services.AddScoped<IMaterialSettingsRepository, MaterialSettingsRepository>();
         services.AddScoped<ISlagFieldPlaceRepository, SlagFieldPlaceRepository>();
         services.AddScoped<ISlagFieldStateRepository, SlagFieldStateRepository>();
         services.AddScoped<ISlagFieldStockRepository, SlagFieldStockRepository>();
 
+        services.AddScoped<ISlagFieldQueryRepository, SlagFieldQueryRepository>();
+        
         services.AddScoped<IPlaceEventStore, SlagFieldPlaceEventStore>();
         services.AddScoped<IStateEventStore, SlagFieldStateEventStore>();
     }
