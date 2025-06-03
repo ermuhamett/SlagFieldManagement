@@ -5,7 +5,6 @@ namespace SlagFieldManagement.Application.Commands.PlaceBucket;
 public sealed class PlaceBucketCommandValidator
     : AbstractValidator<PlaceBucketCommand>
 {
-    
     public PlaceBucketCommandValidator()
     {
         RuleFor(x => x.PlaceId)

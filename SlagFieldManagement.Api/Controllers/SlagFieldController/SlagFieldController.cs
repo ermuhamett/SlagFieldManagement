@@ -1,5 +1,4 @@
 ﻿using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SlagFieldManagement.Application.Commands.EmptyBucket;
 using SlagFieldManagement.Application.Commands.Invalid;
@@ -8,8 +7,8 @@ using SlagFieldManagement.Application.Commands.PlaceBucket;
 using SlagFieldManagement.Application.Commands.RemoveBucket;
 using SlagFieldManagement.Application.Commands.WentInUse;
 using SlagFieldManagement.Application.DTO;
+using SlagFieldManagement.Application.Queries.GetSlagFieldHistory;
 using SlagFieldManagement.Application.Queries.GetSlagFieldState;
-using SlagFieldManagement.Application.Queries.GetSlagFieldStateSnapshot;
 
 namespace SlagFieldManagement.Api.Controllers.SlagFieldController
 {
@@ -22,6 +21,26 @@ namespace SlagFieldManagement.Api.Controllers.SlagFieldController
         public SlagFieldController(IMediator mediator)
         {
             _mediator = mediator;
+        }
+        
+        // Команда: Установить ковш
+        [HttpPost("places/{placeId}/place-bucket")]
+        public async Task<IActionResult> PlaceBucket(Guid placeId, [FromBody] PlaceBucketCommand request)
+        {
+            var command = new PlaceBucketCommand(
+                placeId,
+                request.BucketId,
+                request.MaterialId,
+                request.SlagWeight,
+                request.StartDate
+            );
+            var result = await _mediator.Send(command);
+            if (result.IsFailure)
+            {
+                return BadRequest(result.Error);
+            }
+
+            return Ok();
         }
         
         // Запросы (Queries)
@@ -47,7 +66,7 @@ namespace SlagFieldManagement.Api.Controllers.SlagFieldController
         [HttpGet("state/snapshot")]
         public async Task<ActionResult<List<SlagFieldStateResponse>>> GetStateSnapshot([FromQuery] DateTime timestamp)
         {
-            var query = new GetSlagFieldSnapshotQuery(timestamp);
+            var query = new GetSlagFieldHistoryQuery(timestamp);
             var result = await _mediator.Send(query);
             if (result.IsFailure)
             {
@@ -55,27 +74,7 @@ namespace SlagFieldManagement.Api.Controllers.SlagFieldController
             }
             return Ok(result.Value);
         }
-
-        // Команда: Установить ковш
-        [HttpPost("places/{placeId}/place-bucket")]
-        public async Task<IActionResult> PlaceBucket(Guid placeId, [FromBody] PlaceBucketCommand request)
-        {
-            var command = new PlaceBucketCommand(
-                placeId,
-                request.BucketId,
-                request.MaterialId,
-                request.SlagWeight,
-                request.StartDate
-            );
-            var result = await _mediator.Send(command);
-            if (result.IsFailure)
-            {
-                return BadRequest(result.Error);
-            }
-
-            return Ok();
-        }
-
+        
         // Команда: Опустошить ковш
         [HttpPost("places/{placeId}/empty-bucket")]
         public async Task<IActionResult> EmptyBucket(Guid placeId, [FromBody] EmptyBucketCommand request)

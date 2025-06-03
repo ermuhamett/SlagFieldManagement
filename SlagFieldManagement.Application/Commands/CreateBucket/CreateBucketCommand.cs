@@ -4,4 +4,4 @@ using SlagFieldManagement.Domain.Entities;
 namespace SlagFieldManagement.Application.Commands.CreateBucket;
 
 public record CreateBucketCommand(
-    string Description):ICommand<Bucket>;
+    string Name):ICommand<Bucket>;

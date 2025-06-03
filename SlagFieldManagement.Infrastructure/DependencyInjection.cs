@@ -42,6 +42,9 @@ public static class DependencyInjection
         services.AddScoped<ISlagFieldStockRepository, SlagFieldStockRepository>();
 
         services.AddScoped<ISlagFieldQueryRepository, SlagFieldQueryRepository>();
+
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IRoleRepository, RoleRepository>();
         
         services.AddScoped<IPlaceEventStore, SlagFieldPlaceEventStore>();
         services.AddScoped<IStateEventStore, SlagFieldStateEventStore>();

@@ -16,17 +16,12 @@ public class SlagFieldState:AggregateBase
     public DateTime? EndDate { get; private set; }
     public string? Description { get; private set; }
     public StateFieldType State { get; private set; }
-    
     public bool IsDelete { get; private set; }
-    
-    // Конструктор для создания нового агрегата
     private SlagFieldState(Guid id, Guid placeId) : base(id)
     {
         PlaceId = placeId;
-        State = StateFieldType.Initial; // Начальное состояние
+        State = StateFieldType.Initial; 
     }
-    
-    // Фабричный метод для создания нового состояния для места
     public static SlagFieldState CreateState(Guid placeId)
     {
         return new SlagFieldState(Guid.NewGuid(), placeId);
@@ -111,6 +106,9 @@ public class SlagFieldState:AggregateBase
                 State = StateFieldType.BucketRemoved;
                 break;
             case InvalidEvent invalid:
+                BucketId = null;
+                MaterialId = null;
+                SlagWeight = 0;
                 State = StateFieldType.Invalid;
                 Description = invalid.Description;
                 break;

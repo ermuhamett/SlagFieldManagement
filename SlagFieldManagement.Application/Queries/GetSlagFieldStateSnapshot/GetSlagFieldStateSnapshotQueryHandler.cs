@@ -8,134 +8,136 @@ using SlagFieldManagement.Domain.Interfaces;
 
 namespace SlagFieldManagement.Application.Queries.GetSlagFieldStateSnapshot;
 
-public class GetSlagFieldStateSnapshotQueryHandler:IQueryHandler<GetSlagFieldSnapshotQuery, List<SlagFieldStateResponse>>
+public class GetSlagFieldStateSnapshotQueryHandler
+    : IQueryHandler<GetSlagFieldSnapshotQuery, List<SlagFieldStateResponse>>
 {
-    private readonly ISlagFieldPlaceRepository _placeRepository;
-    private readonly IPlaceEventStore _placeEventStore;
-    private readonly IStateEventStore _stateEventStore;
+    private readonly ISlagFieldPlaceRepository _placeRepo;
+    private readonly IPlaceEventStore _placeStore;
+    private readonly IStateEventStore _stateStore;
 
     public GetSlagFieldStateSnapshotQueryHandler(
         ISlagFieldPlaceRepository placeRepository,
         IPlaceEventStore placeEventStore,
         IStateEventStore stateEventStore)
     {
-        _placeRepository = placeRepository;
-        _placeEventStore = placeEventStore;
-        _stateEventStore = stateEventStore;
+        _placeRepo = placeRepository;
+        _placeStore = placeEventStore;
+        _stateStore = stateEventStore;
     }
-    public async Task<Result<List<SlagFieldStateResponse>>> Handle(GetSlagFieldSnapshotQuery request, CancellationToken cancellationToken)
+
+    public async Task<Result<List<SlagFieldStateResponse>>> Handle(
+        GetSlagFieldSnapshotQuery request,
+        CancellationToken ct)
     {
-        // 1. Получаем все места
-        var places = await _placeRepository.GetAllAsync(cancellationToken);
+        var places = await _placeRepo.GetAllAsync(ct);
         var placeIds = places.Select(p => p.Id).ToList();
-        
-        // 2. Загружаем события для всех мест одним запросом
-        var allPlaceEvents = await _placeEventStore.GetEventsBeforeForPlacesAsync(placeIds, request.SnapshotTime, cancellationToken);
-        var allStateEvents = await _stateEventStore.GetEventsBeforeForPlacesAsync(placeIds, request.SnapshotTime, cancellationToken);
-        
-        // 3. Группируем события по placeId для быстрого доступа
-        var placeEventsGrouped = allPlaceEvents
-            .GroupBy(e => e.AggregateId)
-            .ToDictionary(g => g.Key, g => g.OrderBy(e => e.Timestamp).ToList());
 
-        var stateEventsGrouped = allStateEvents
+        var snapshotEnd = request.SnapshotTime.TimeOfDay == TimeSpan.Zero
+            ? request.SnapshotTime.AddDays(1).AddTicks(-1) // конец дня
+            : request.SnapshotTime;
+
+        // Получаем события мест
+        var placeEvts = await _placeStore
+            .GetEventsBeforeForPlacesAsync(placeIds, snapshotEnd, ct);
+        Console.WriteLine($"Loaded {placeEvts.Count} place events");
+
+        // Получаем события состояний
+        var stateEvts = await _stateStore
+            .GetEventsBeforeForPlacesAsync(placeIds, snapshotEnd, ct);
+        Console.WriteLine($"Loaded {stateEvts.Count} state events");
+
+        // 3) сгруппировать сразу
+        var placeLastEvt = placeEvts
             .GroupBy(e => e.AggregateId)
-            .ToDictionary(g => g.Key, g => g.OrderBy(e => e.Timestamp).ToList());
-        
-        // 4. Формируем ответ для каждого места
-        var responses = places.Select(place =>
+            .ToDictionary(
+                g => g.Key,
+                g => g.MaxBy(e => e.Timestamp)
+            );
+        var stateLastEvt = stateEvts
+            .GroupBy(e => e.AggregateId)
+            .ToDictionary(
+                g => g.Key,
+                g => g.MaxBy(e => e.Timestamp)
+            );
+
+        // 7) Собираем результат
+        var result = new List<SlagFieldStateResponse>(places.Count);
+
+        foreach (var place in places)
         {
-            var placeEventsForPlace = placeEventsGrouped.TryGetValue(place.Id, out var pe) ? pe : new List<IDomainEvent>();
-            bool isEnable = DetermineIsEnable(placeEventsForPlace);
-
-            string state;
-            Guid? bucketId = null;
-            Guid? materialId = null;
-            decimal? slagWeight = null;
-            DateTime? startDate = null;
-            DateTime? endDate = null;
-            string? description = null;
-
-            if (isEnable)
-            {
-                var stateEventsForPlace = stateEventsGrouped.TryGetValue(place.Id, out var se) ? se : new List<IDomainEvent>();
-                (state, bucketId, materialId, slagWeight, startDate, endDate, description) = RebuildState(stateEventsForPlace);
-            }
-            else
-            {
-                state = "NotInUse";
-            }
-
-            return new SlagFieldStateResponse()
+            // Базовый «пустой» ответ
+            var response = new SlagFieldStateResponse
             {
                 PlaceId = place.Id,
                 Row = place.Row,
                 Number = place.Number,
-                IsEnable = isEnable,
-                State = state,
-                BucketId = bucketId,
-                MaterialId = materialId,
-                SlagWeight = slagWeight,
-                StartDate = startDate,
-                EndDate = endDate,
-                Description = description
+                IsEnable = true,
+                State = "NotInUse",
+                BucketId = null,
+                MaterialId = null,
+                SlagWeight = null,
+                StartDate = null,
+                EndDate = null,
+                Description = null
             };
-        }).ToList();
-
-        return Result.Success(responses);
-    }
-    
-    private bool DetermineIsEnable(List<IDomainEvent> placeEvents)
-    {
-        bool isEnable = false;
-        foreach (var @event in placeEvents)
-        {
-            if (@event is WentInUseEvent) isEnable = true;
-            else if (@event is WentOutOfUseEvent) isEnable = false;
-        }
-        return isEnable;
-    }
-    
-    private (string state, Guid? bucketId, Guid? materialId, decimal? slagWeight, DateTime? startDate, DateTime? endDate, string? description) RebuildState(IEnumerable<IDomainEvent> stateEvents)
-    {
-        string state = "NotInUse";
-        Guid? bucketId = null;
-        Guid? materialId = null;
-        decimal? slagWeight = null;
-        DateTime? startDate = null;
-        DateTime? endDate = null;
-        string? description = null;
-
-        foreach (var @event in stateEvents)
-        {
-            switch (@event)
+            
+            // Применяем последнее state‑событие поверх (оно имеет приоритет)
+            if (stateLastEvt.TryGetValue(place.Id, out var stEvt) && stEvt != null)
             {
-                case BucketPlacedEvent placed:
-                    state = "BucketPlaced";
-                    bucketId = placed.BucketId;
-                    materialId = placed.MaterialId;
-                    slagWeight = placed.SlagWeight;
-                    startDate = placed.ClientStartDate;
-                    endDate = null;
-                    description = null;
-                    break;
-                case BucketEmptiedEvent emptied:
-                    state = "BucketEmptied";
-                    endDate = emptied.BucketEmptiedTime;
-                    break;
-                case BucketRemovedEvent:
-                    state = "BucketRemoved";
-                    bucketId = null;
-                    materialId = null;
-                    slagWeight = 0;
-                    break;
-                case InvalidEvent invalid:
-                    state = "Invalid";
-                    description = invalid.Description;
-                    break;
+                response = stEvt switch
+                {
+                    BucketPlacedEvent p => response with
+                    {
+                        IsEnable = true,
+                        State = "BucketPlaced",
+                        BucketId = p.BucketId,
+                        MaterialId = p.MaterialId,
+                        SlagWeight = p.SlagWeight,
+                        StartDate = p.ClientStartDate
+                    },
+                    BucketEmptiedEvent eb => response with
+                    {
+                        IsEnable = true,
+                        State = "BucketEmptied",
+                        EndDate = eb.BucketEmptiedTime
+                    },
+                    BucketRemovedEvent => response with
+                    {
+                        IsEnable = false,
+                        State = "BucketRemoved",
+                        BucketId = null,
+                        MaterialId = null,
+                        SlagWeight = 0
+                    },
+                    InvalidEvent inv => response with
+                    {
+                        State = "Invalid",
+                        Description = inv.Description,
+                        // при invalid ковш считается снятым
+                        BucketId = null,
+                        MaterialId = null,
+                        SlagWeight = 0,
+                        StartDate = null,
+                        EndDate = null
+                    },
+                    _ => response
+                };
             }
+
+            // Применяем последнее place‑событие (активация/деактивация)
+            if (placeLastEvt.TryGetValue(place.Id, out var plEvt) && plEvt != null)
+            {
+                response = plEvt switch
+                {
+                    WentInUseEvent => response with { IsEnable = true, State = "InUse" },
+                    WentOutOfUseEvent => response with { IsEnable = false, State = "NotInUse" },
+                    _ => response
+                };
+            }
+            
+            result.Add(response);
         }
 
-        return (state, bucketId, materialId, slagWeight, startDate, endDate, description);
+        return Result.Success(result);
     }
 }

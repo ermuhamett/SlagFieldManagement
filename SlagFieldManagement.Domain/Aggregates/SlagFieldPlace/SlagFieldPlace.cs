@@ -10,9 +10,6 @@ public sealed class SlagFieldPlace:AggregateBase
     public int Number { get; private set; }
     public bool IsEnable { get; private set; }
     public bool IsDelete { get; private set; }
-    
-    // Состояние (проекция)
-    //public SlagFieldState CurrentState { get; private set; }
     private SlagFieldPlace(Guid id, string row, int number) : base(id)
     {
         Row = row;
@@ -20,8 +17,6 @@ public sealed class SlagFieldPlace:AggregateBase
         IsEnable = true;
         IsDelete = false;
     }
-    
-    // Фабричный метод
     public static Result<SlagFieldPlace> Create(string row, int number)
     {
         if (string.IsNullOrWhiteSpace(row) || !row.All(char.IsLetterOrDigit))
@@ -65,7 +60,6 @@ public sealed class SlagFieldPlace:AggregateBase
         return Result.Success();
     }
     
-
     protected override void ApplyEvent(IDomainEvent @event)
     {
         switch (@event)

@@ -23,7 +23,7 @@ public sealed class CreateBucketCommandHandler:ICommandHandler<CreateBucketComma
         CancellationToken ct)
     {
         // Создаём ковш
-        var bucket = Bucket.Create(request.Description);
+        var bucket = Bucket.Create(request.Name);
 
         // Сохраняем в репозитории с использованием транзакции
         await _unitOfWork.BeginTransactionAsync(ct);

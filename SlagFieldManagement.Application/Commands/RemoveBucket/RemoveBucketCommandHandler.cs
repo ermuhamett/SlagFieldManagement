@@ -47,7 +47,7 @@ public sealed class RemoveBucketCommandHandler:ICommandHandler<RemoveBucketComma
         await _unitOfWork.BeginTransactionAsync(ct);
         try
         {
-            await _stateRepository.AddAsync(currentState, ct);
+            _stateRepository.Update(currentState);
             // Сохраняем все события, сгенерированные агрегатом
             foreach (var @event in currentState.Events)
             {

@@ -24,6 +24,4 @@ public abstract class AggregateBase : Entity
     {
         _events.Clear();
     }
-
-    //public abstract void LoadFromHistory(IEnumerable<IDomainEvent> events);
 }

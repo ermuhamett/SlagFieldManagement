@@ -18,25 +18,23 @@ internal sealed class SlagFieldQueryRepository:ISlagFieldQueryRepository
 
     public async Task<List<SlagFieldStateProjection>> GetCurrentStatesAsync(CancellationToken ct)
     {
-        var query =
-            from place in _dbContext.Set<SlagFieldPlace>().Where(p => !p.IsDelete)
-            join state in _dbContext.Set<SlagFieldState>()
-                    .Where(s => s.State == StateFieldType.BucketPlaced ||
-                                s.State == StateFieldType.BucketEmptied)
-                    .GroupBy(s => s.PlaceId)
-                    .Select(g => g.OrderByDescending(s => s.StartDate).FirstOrDefault())
-                on place.Id equals state.PlaceId into states
-            from state in states.DefaultIfEmpty()
-            select new SlagFieldStateProjection()
+        var query = from place in _dbContext.Set<SlagFieldPlace>().Where(p => !p.IsDelete)
+            from state in _dbContext.Set<SlagFieldState>()
+                .Where(s => s.PlaceId == place.Id &&
+                            (s.State == StateFieldType.BucketPlaced || s.State == StateFieldType.BucketEmptied) &&
+                            s.StartDate == _dbContext.Set<SlagFieldState>()
+                                .Where(s2 => s2.PlaceId == place.Id &&
+                                             (s2.State == StateFieldType.BucketPlaced || s2.State == StateFieldType.BucketEmptied))
+                                .Max(s2 => s2.StartDate))
+                .DefaultIfEmpty()
+            select new SlagFieldStateProjection
             {
                 PlaceId = place.Id,
                 Row = place.Row,
                 Number = place.Number,
                 IsEnable = place.IsEnable,
                 StateId = state != null ? state.Id : null,
-                State = place.IsEnable
-                    ? (state != null ? state.State.ToString() : "NotInUse")
-                    : "NotInUse",
+                State = place.IsEnable ? (state != null ? state.State.ToString() : "NotInUse") : "NotInUse",
                 BucketId = state != null ? state.BucketId : null,
                 MaterialId = state != null ? state.MaterialId : null,
                 SlagWeight = state != null ? state.SlagWeight : null,
@@ -44,6 +42,7 @@ internal sealed class SlagFieldQueryRepository:ISlagFieldQueryRepository
                 EndDate = state != null ? state.EndDate : null,
                 Description = state != null ? state.Description : null
             };
+
         return await query.ToListAsync(ct);
     }
 }

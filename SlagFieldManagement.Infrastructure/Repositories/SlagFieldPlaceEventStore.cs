@@ -10,12 +10,21 @@ internal sealed class SlagFieldPlaceEventStore:IPlaceEventStore
 {
     private readonly ApplicationDbContext _dbContext;
 
-    // Словарь для десериализации событий
-    private static readonly Dictionary<string, Func<string, IDomainEvent>> EventDeserializers = new()
-    {
-        ["WentInUse"] = json => JsonSerializer.Deserialize<WentInUseEvent>(json)!,
-        ["OutOfUse"] = json => JsonSerializer.Deserialize<WentOutOfUseEvent>(json)!,
-    };
+    // Вместо Func<string,IDomainEvent> теперь принимаем всю сущность
+    private static readonly Dictionary<string, Func<SlagFieldPlaceEvent, IDomainEvent>> EventDeserializers
+        = new()
+        {
+            ["WentInUse"]  = se => new WentInUseEvent(
+                EventId: se.EventId,
+                AggregateId: se.AggregateId,
+                EventType: se.EventType,
+                Timestamp: se.Timestamp),
+            ["OutOfUse"]   = se => new WentOutOfUseEvent(
+                EventId: se.EventId,
+                AggregateId: se.AggregateId,
+                EventType: se.EventType,
+                Timestamp: se.Timestamp),
+        };
     public SlagFieldPlaceEventStore(ApplicationDbContext dbContext)
     {
         _dbContext = dbContext;
@@ -55,10 +64,7 @@ internal sealed class SlagFieldPlaceEventStore:IPlaceEventStore
     {
         if (EventDeserializers.TryGetValue(storageEvent.EventType, out var deserializer))
         {
-            var deserializedEvent = deserializer(storageEvent.EventData);
-            if (deserializedEvent == null)
-                throw new InvalidOperationException($"Failed to deserialize event: {storageEvent.EventType}");
-            return deserializedEvent;
+            return deserializer(storageEvent);
         }
         throw new InvalidOperationException($"Unknown event type: {storageEvent.EventType}");
     }

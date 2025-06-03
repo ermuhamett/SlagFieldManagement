@@ -29,9 +29,7 @@ public sealed class PlaceBucketCommandHandler:ICommandHandler<PlaceBucketCommand
         _stateEventStore = stateEventStore;
     }
     
-    public async Task<Result> Handle(
-        PlaceBucketCommand request, 
-        CancellationToken ct)
+    public async Task<Result> Handle(PlaceBucketCommand request, CancellationToken ct)
     {
         var place = await _placeRepository.GetByIdAsync(request.PlaceId, ct);
         if (place is null || !place.IsEnable)
@@ -41,8 +39,6 @@ public sealed class PlaceBucketCommandHandler:ICommandHandler<PlaceBucketCommand
         if (bucket is null || bucket.IsDelete)
             return Result.Failure(SlagFieldErrors.BucketNotFound(request.BucketId));
         
-        // 2. Получение текущего состояния
-        // Проверка текущего состояния места
         var activeState = await _stateRepository.GetActiveStateAsync(request.PlaceId, ct);
         if (activeState != null &&
             activeState.State != StateFieldType.BucketRemoved &&
@@ -51,7 +47,6 @@ public sealed class PlaceBucketCommandHandler:ICommandHandler<PlaceBucketCommand
             return Result.Failure<Guid>(SlagFieldStateErrors.PlaceOccupied(request.PlaceId)); 
         }
         
-        // 3. Создание нового состояния
         var newState = SlagFieldState.CreateState(request.PlaceId);
         
         newState.PlaceBucket(
@@ -59,13 +54,11 @@ public sealed class PlaceBucketCommandHandler:ICommandHandler<PlaceBucketCommand
             request.MaterialId,
             request.SlagWeight * 1000,
             request.StartDate);
-
-        // 4. Сохранение
+        
         await _unitOfWork.BeginTransactionAsync(ct);
         try
         {
             await _stateRepository.AddAsync(newState,ct);
-            // Сохраняем все события, сгенерированные агрегатом
             foreach (var @event in newState.Events)
             {
                 await _stateEventStore.SaveEventAsync(@event, newState.Id, expectedVersion: 0);

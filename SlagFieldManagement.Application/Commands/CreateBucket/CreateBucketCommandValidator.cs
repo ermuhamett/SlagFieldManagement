@@ -6,7 +6,7 @@ public sealed class CreateBucketCommandValidator:AbstractValidator<CreateBucketC
 {
     public CreateBucketCommandValidator()
     {
-        RuleFor(x => x.Description)
+        RuleFor(x => x.Name)
             .NotEmpty().WithMessage("Описание ковша обязательно.")
             .MaximumLength(250);
     }
